@@ -1,11 +1,7 @@
 'use strict';
-
-var ipc = require('ipc');
-var remote = require('remote');
-var Tray = remote.require('tray');
-var Menu = remote.require('menu');
+const { ipcRenderer,remote } = require('electron');
+const { Tray, Menu } = remote;
 var path = require('path');
-
 var soundButtons = document.querySelectorAll('.button-sound');
 var closeEl = document.querySelector('.close');
 var settingsEl = document.querySelector('.settings');
@@ -31,14 +27,14 @@ function prepareButton(buttonEl, soundName) {
 }
 
 closeEl.addEventListener('click', function () {
-    ipc.send('close-main-window');
+    ipcRenderer.send('close-main-window');
 });
 
 settingsEl.addEventListener('click', function () {
-    ipc.send('open-settings-window');
+    ipcRenderer.send('open-settings-window');
 });
 
-ipc.on('global-shortcut', function (arg) {
+ipcRenderer.on('global-shortcut', function (e, arg) {
     var event = new MouseEvent('click');
     soundButtons[arg].dispatchEvent(event);
 });
@@ -58,15 +54,20 @@ var trayMenuTemplate = [
     {
         label: 'Settings',
         click: function () {
-            ipc.send('open-settings-window');
+            ipcRenderer.send('open-settings-window');
         }
     },
     {
         label: 'Quit',
         click: function () {
-            ipc.send('close-main-window');
+            ipcRenderer.send('close-main-window');
         }
     }
 ];
 trayMenu = Menu.buildFromTemplate(trayMenuTemplate);
+trayIcon.setToolTip('click to focus.');
 trayIcon.setContextMenu(trayMenu);
+
+trayIcon.on('click', function () {
+    ipcRenderer.send('tray-click')
+});
